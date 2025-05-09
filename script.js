@@ -17,7 +17,7 @@ function saveXP(o){localStorage.xp=o.xp; localStorage.lvl=o.lvl}
 function initDay(){
   if(localStorage.date !== today()){
     localStorage.date = today();
-    localStorage.aura = 0;         // ▶ Aura now starts at 0
+    localStorage.aura = 0;         // Aura starts at 0
     localStorage.bad  = 0;
     localStorage.doneG = '[]';
     localStorage.doneB = '[]';

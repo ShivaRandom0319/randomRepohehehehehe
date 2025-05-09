@@ -12,14 +12,17 @@
 
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <!-- NAVBAR -->
-  <nav class="nav glass">
+
+<!--  body gets a CSS var fallback for navbar height so sections never hide underneath -->
+<body style="--nav-h:64px">
+  <!-- ============ NAVBAR (fixed) ============ -->
+  <nav id="mainNav" class="nav glass">
     <h1 id="logo" class="logo">Temptation Slayer</h1>
 
     <ul id="navLinks" class="links">
-      <li><button id="homeTab"       class="tab active">Home</button></li>
-      <li><button id="activitiesTab" class="tab">Activities</button></li>
+      <!-- onclick collapses mobile menu after tap -->
+      <li><button id="homeTab" class="tab active" onclick="navLinks.classList.remove('show')">Home</button></li>
+      <li><button id="activitiesTab" class="tab" onclick="navLinks.classList.remove('show')">Activities</button></li>
     </ul>
 
     <button id="burger" class="burger" aria-label="Menu">
@@ -27,7 +30,7 @@
     </button>
   </nav>
 
-  <!-- HOME PAGE -->
+  <!-- ============ HOME PAGE ============ -->
   <main id="homePage" class="page active">
     <section class="stats glass">
       <div class="level-block">
@@ -53,13 +56,15 @@
     </section>
   </main>
 
-  <!-- ACTIVITIES PAGE -->
+  <!-- ============ ACTIVITIES PAGE ============ -->
   <main id="activitiesPage" class="page">
     <section class="activities glass">
+      <!-- GOOD LIST -->
       <div class="panel good">
         <h2>Good Activities</h2>
         <ul id="goodList" class="activity-list">
-         <li><input type="checkbox" id="g0"><label for="g0">Studying</label></li>
+          <!-- Feel free to add / remove items; maths adapts automatically -->
+<li><input type="checkbox" id="g0"><label for="g0">Studying</label></li>
 <li><input type="checkbox" id="g1"><label for="g1">Workout(M)</label></li>
 <li><input type="checkbox" id="g2"><label for="g2">Workout(E)</label></li>
 <li><input type="checkbox" id="g3"><label for="g3">prac</li>
@@ -71,23 +76,24 @@
         </ul>
       </div>
 
+      <!-- BAD LIST -->
       <div class="panel bad">
         <h2>Bad Activities</h2>
         <ul id="badList" class="activity-list">
-         <li><input type="checkbox" id="b0"><label for="b0">Traumas</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">Images(M)</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">Images(Sys)</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">P**N</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">easeUs</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">VPN/VidDown</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">XSCam</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">camRec</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">Coc</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">wcc2</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">AI(gf)</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">Images(AI)</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">Fap</label></li>
-<li><input type="checkbox" id="b0"><label for="b0">phone(random usage)</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">Traumas</label></li>
+<li><input type="checkbox" id="b1"><label for="b1">Images(M)</label></li>
+<li><input type="checkbox" id="b2"><label for="b2">Images(Sys)</label></li>
+<li><input type="checkbox" id="b3"><label for="b3">P**N</label></li>
+<li><input type="checkbox" id="b4"><label for="b4">easeUs</label></li>
+<li><input type="checkbox" id="b5"><label for="b5">VPN/VidDown</label></li>
+<li><input type="checkbox" id="b6"><label for="b6">XSCam</label></li>
+<li><input type="checkbox" id="b7"><label for="b7">camRec</label></li>
+<li><input type="checkbox" id="b8"><label for="b8">Coc</label></li>
+<li><input type="checkbox" id="b9"><label for="b9">wcc2</label></li>
+<li><input type="checkbox" id="b10"><label for="b10">AI(gf)</label></li>
+<li><input type="checkbox" id="b11"><label for="b11">Images(AI)</label></li>
+<li><input type="checkbox" id="b12"><label for="b12">Fap</label></li>
+<li><input type="checkbox" id="b13"><label for="b13">phone(random usage)</label></li>
         </ul>
       </div>
     </section>
@@ -95,7 +101,7 @@
     <button id="submitBtn" class="btn primary pulse">Submit Results</button>
   </main>
 
-  <!-- POPUP -->
+  <!-- ============ POPUP ============ -->
   <div id="popup" class="popup hidden">
     <div class="popup-content glass">
       <h2>Daily Summary</h2>
