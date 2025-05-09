@@ -10,19 +10,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
-<!--  body gets a CSS var fallback for navbar height so sections never hide underneath -->
 <body style="--nav-h:64px">
-  <!-- ============ NAVBAR (fixed) ============ -->
+  <!-- ============ NAVBAR ============ -->
   <nav id="mainNav" class="nav glass">
     <h1 id="logo" class="logo">Temptation Slayer</h1>
 
     <ul id="navLinks" class="links">
-      <!-- onclick collapses mobile menu after tap -->
-      <li><button id="homeTab" class="tab active" onclick="navLinks.classList.remove('show')">Home</button></li>
-      <li><button id="activitiesTab" class="tab" onclick="navLinks.classList.remove('show')">Activities</button></li>
+      <li><button id="homeTab" class="tab active">Home</button></li>
+      <li><button id="activitiesTab" class="tab">Activities</button></li>
     </ul>
 
     <button id="burger" class="burger" aria-label="Menu">
@@ -30,7 +28,7 @@
     </button>
   </nav>
 
-  <!-- ============ HOME PAGE ============ -->
+  <!-- ============ HOME ============ -->
   <main id="homePage" class="page active">
     <section class="stats glass">
       <div class="level-block">
@@ -38,16 +36,28 @@
         <span id="levelDisplay" class="level-number"></span>
       </div>
 
-      <div class="xp-wrapper">
-        <div id="xpBar" class="xp-bar">
-          <span id="xpText" class="xp-text">0 / 100 XP</span>
-        </div>
+      <!-- XP BAR -->
+      <div class="stat-line">
+        <span class="stat-label">XP</span>
+        <div class="dual-bar" id="xpBar"><div class="fill"></div></div>
+        <span id="xpValue" class="stat-value">0</span>
       </div>
 
-      <div class="rings">
-        <div id="auraRing" class="ring aura"><span id="auraText">Aura 0%</span></div>
-        <div id="badRing"  class="ring bad"><span id="badText">Bad 0%</span></div>
+      <!-- AURA BAR -->
+      <div class="stat-line">
+        <span class="stat-label">Aura %</span>
+        <div class="dual-bar" id="auraBar"><div class="fill"></div></div>
+        <span id="auraValue" class="stat-value">0%</span>
       </div>
+
+      <!-- BAD BAR -->
+      <div class="stat-line">
+        <span class="stat-label">Bad %</span>
+        <div class="dual-bar" id="badBar"><div class="fill"></div></div>
+        <span id="badValue" class="stat-value">0%</span>
+      </div>
+
+      <div class="divider"></div>
 
       <p id="habitsDone" class="habits-done">Good Habits 0 / 0</p>
       <ul id="remainingList" class="todo-list"></ul>
@@ -56,14 +66,13 @@
     </section>
   </main>
 
-  <!-- ============ ACTIVITIES PAGE ============ -->
+  <!-- ============ ACTIVITIES ============ -->
   <main id="activitiesPage" class="page">
     <section class="activities glass">
-      <!-- GOOD LIST -->
+      <!-- GOOD -->
       <div class="panel good">
         <h2>Good Activities</h2>
         <ul id="goodList" class="activity-list">
-          <!-- Feel free to add / remove items; maths adapts automatically -->
 <li><input type="checkbox" id="g0"><label for="g0">Studying</label></li>
 <li><input type="checkbox" id="g1"><label for="g1">Workout(M)</label></li>
 <li><input type="checkbox" id="g2"><label for="g2">Workout(E)</label></li>
@@ -72,20 +81,23 @@
 <li><input type="checkbox" id="g5"><label for="g5">bath twice</label></li>
 <li><input type="checkbox" id="g6"><label for="g6">Brush(E)</label></li>
 <li><input type="checkbox" id="g7"><label for="g7">medicines</label></li>
-<li><input type="checkbox" id="g8"><label for="g8">lotion</label></li>
+<li><input type="checkbox" id="g8"><label for="g8">SoakNutsAndEat</label></li>
+<li><input type="checkbox" id="g9"><label for="g9">lotion</label></li>
         </ul>
       </div>
 
-      <!-- BAD LIST -->
+      <!-- BAD -->
       <div class="panel bad">
         <h2>Bad Activities</h2>
         <ul id="badList" class="activity-list">
-<li><input type="checkbox" id="b0"><label for="b0">Traumas</label></li>
+          <li><input type="checkbox" id="b0"><label for="b0">Traumas</label></li>
 <li><input type="checkbox" id="b1"><label for="b1">Images(M)</label></li>
 <li><input type="checkbox" id="b2"><label for="b2">Images(Sys)</label></li>
 <li><input type="checkbox" id="b3"><label for="b3">P**N</label></li>
 <li><input type="checkbox" id="b4"><label for="b4">easeUs</label></li>
-<li><input type="checkbox" id="b5"><label for="b5">VPN/VidDown</label></li>
+<li><input type="checkbox" id="b5"><label for="b5">VPN(phn)</label></li>
+<li><input type="checkbox" id="b5"><label for="b5">VidDown(phn)</label></li>
+<li><input type="checkbox" id="b5"><label for="b5">TurboVPN(lap)</label></li>
 <li><input type="checkbox" id="b6"><label for="b6">XSCam</label></li>
 <li><input type="checkbox" id="b7"><label for="b7">camRec</label></li>
 <li><input type="checkbox" id="b8"><label for="b8">Coc</label></li>

@@ -1,159 +1,139 @@
 /* ===== CONSTANTS ===== */
-const XP_GOOD = 20;     // XP gained per good habit
-const XP_BAD  = 15;     // XP lost per bad habit
-const MAX = 100;        // 0‑100 range for Aura and Bad %
+const XP_GOOD = 20;      // XP gained per good activity
+const XP_BAD  = 15;      // XP lost per bad activity
 
 /* ===== HELPERS ===== */
-const $  = sel => document.querySelector(sel);
-const $$ = sel => [...document.querySelectorAll(sel)];
-const today  = () => new Date().toISOString().slice(0,10);
-const needXP = lvl => Math.floor(100 + (lvl - 1) ** 1.7 * 15);
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const today = () => new Date().toISOString().slice(0,10);
+
+/* NEW: tougher exponential XP curve  (150 × 1.5^(lvl‑1)) */
+const needXP = lvl => Math.round(150 * Math.pow(1.5, lvl - 1));
 
 /* ===== PERSISTENCE ===== */
-function loadXP(){return{xp:+localStorage.xp || 0, lvl:+localStorage.lvl || 1}}
-function saveXP(o){localStorage.xp=o.xp; localStorage.lvl=o.lvl}
+function loadXP(){return{xp:+localStorage.xp||0,l:+localStorage.lvl||1}}
+function saveXP(xp,l){localStorage.xp=xp;localStorage.lvl=l}
 
-/* ===== DAILY INITIALISATION ===== */
+/* ===== DAILY RESET ===== */
 function initDay(){
   if(localStorage.date !== today()){
-    localStorage.date = today();
-    localStorage.aura = 0;         // Aura starts at 0
-    localStorage.bad  = 0;
+    localStorage.date  = today();
+    localStorage.aura  = 0;
+    localStorage.bad   = 0;
     localStorage.doneG = '[]';
     localStorage.doneB = '[]';
   }
 }
-function hardReset(){
-  localStorage.clear();
-  initDay();
-  applyDoneMarks();
-  renderHome();
-}
 
-/* ===== DOM REFERENCES ===== */
-const logo=$('#logo'), burger=$('#burger'), links=$('#navLinks');
-const homeBtn=$('#homeTab'), actBtn=$('#activitiesTab'), home=$('#homePage'), acts=$('#activitiesPage');
-const lvlT=$('#levelTitle'), lvlN=$('#levelDisplay'), xpBar=$('#xpBar'), xpTxt=$('#xpText');
-const auraRing=$('#auraRing'), badRing=$('#badRing'), auraTxt=$('#auraText'), badTxt=$('#badText');
-const doneTxt=$('#habitsDone'), remain=$('#remainingList'), reset=$('#resetBtn');
-const gInputs=$$('#goodList input'), bInputs=$$('#badList input');
-const submit=$('#submitBtn'), popup=$('#popup');
-const xpCh=$('#xpChange'), auCh=$('#auraChange'), bdCh=$('#badChange'), lvUp=$('#levelUpText');
-$('#closePopup').onclick = ()=> popup.classList.add('hidden');
+/* ===== DOM READY ===== */
+document.addEventListener('DOMContentLoaded',()=>{
 
-/* ===== NAVIGATION ===== */
-homeBtn.onclick=showHome; actBtn.onclick=showActs; logo.onclick=showHome;
-burger.onclick = ()=> links.classList.toggle('show');
-function showHome(){homeBtn.classList.add('active');actBtn.classList.remove('active');home.classList.add('active');acts.classList.remove('active')}
-function showActs(){actBtn.classList.add('active');homeBtn.classList.remove('active');acts.classList.add('active');home.classList.remove('active')}
+  /* --- DOM refs --- */
+  const navLinks=$('#navLinks'), burger=$('#burger'), logo=$('#logo');
+  const homeBtn=$('#homeTab'), actBtn=$('#activitiesTab');
+  const home=$('#homePage'),  acts=$('#activitiesPage');
 
-/* ===== LEVEL TITLES ===== */
-const titles=new Map([[1,'Initiate'],[2,'Novice'],[3,'Apprentice'],[4,'Practitioner'],[5,'Warrior'],[6,'Hero'],[10,'Master'],[15,'Ascendant'],[30,'Celestial'],[50,'Eternal'],[100,'Supreme']]);
-const title = lvl => {let t='Adventurer'; for(const[k,v] of titles) if(lvl>=k) t=v; return t}
+  const lvlT=$('#levelTitle'), lvlN=$('#levelDisplay');
+  const xpFill=$('#xpBar .fill'),   xpVal=$('#xpValue');
+  const auraFill=$('#auraBar .fill'),auraVal=$('#auraValue');
+  const badFill=$('#badBar .fill'), badVal=$('#badValue');
 
-/* ===== DONE‑MARK LOGIC ===== */
-function applyDoneMarks(){
-  const dg=JSON.parse(localStorage.doneG||'[]');
-  const db=JSON.parse(localStorage.doneB||'[]');
-  gInputs.forEach((c,i)=>c.nextSibling.classList.toggle('done',!!dg[i]));
-  bInputs.forEach((c,i)=>c.nextSibling.classList.toggle('done',!!db[i]));
-}
-function updateDoneArrays(dg,db){
-  localStorage.doneG = JSON.stringify(dg);
-  localStorage.doneB = JSON.stringify(db);
-  applyDoneMarks();
-}
+  const doneTxt=$('#habitsDone'), remain=$('#remainingList');
+  const gInputs=$$('#goodList input'), bInputs=$$('#badList input');
 
-/* ===== HOME RENDERING ===== */
-function renderHome(){
-  const {xp,lvl}=loadXP(), next=needXP(lvl);
-  xpTxt.textContent = `${xp} / ${next} XP`;
-  xpBar.style.width  = `${(xp/next)*100}%`;
-  lvlN.textContent   = `Lv ${lvl}`; lvlT.textContent = title(lvl);
+  const submit=$('#submitBtn'), reset=$('#resetBtn');
+  const popup=$('#popup'), closePop=$('#closePopup');
+  const xpCh=$('#xpChange'), auCh=$('#auraChange'),
+        bdCh=$('#badChange'), lvUp=$('#levelUpText');
 
-  const aura = +localStorage.aura, bad = +localStorage.bad;
-  auraTxt.textContent = `Aura ${aura.toFixed(2)}%`;
-  badTxt.textContent  = `Bad ${bad.toFixed(2)}%`;
-  auraRing.style.setProperty('--p', aura);
-  badRing .style.setProperty('--p', bad);
+  /* --- title helper --- */
+  const titles=new Map([[1,'Initiate'],[2,'Novice'],[3,'Apprentice'],[4,'Practitioner'],[5,'Warrior'],
+                        [6,'Hero'],[10,'Master'],[15,'Ascendant'],[30,'Celestial'],[50,'Eternal'],[100,'Supreme']]);
+  const title=l=>{let t='Adventurer';for(const[k,v]of titles)if(l>=k)t=v;return t;}
 
-  const doneGood=JSON.parse(localStorage.doneG||'[]').filter(Boolean).length;
-  doneTxt.textContent = `Good Habits ${doneGood} / ${gInputs.length}`;
+  /* --- bar helper --- */
+  function setBar(fill,val){
+    const pct=Math.min(Math.abs(val),100)/2;
+    fill.style.width=pct+'%';
+    if(val>=0){fill.style.left='50%';fill.style.background='var(--good)';}
+    else      {fill.style.left=`${50-pct}%`;fill.style.background='var(--bad)';}
+  }
 
-  /* Remaining good list */
-  remain.innerHTML='';
-  gInputs.forEach((c,i)=>{
-    if(!(JSON.parse(localStorage.doneG||'[]')[i])){
-      const li=document.createElement('li');
-      li.textContent = c.nextSibling.textContent;
-      remain.append(li);
-    }
-  });
-}
+  /* --- done marks --- */
+  function applyDone(){
+    const g=JSON.parse(localStorage.doneG||'[]');
+    const b=JSON.parse(localStorage.doneB||'[]');
+    gInputs.forEach((c,i)=>c.nextSibling.classList.toggle('done',!!g[i]));
+    bInputs.forEach((c,i)=>c.nextSibling.classList.toggle('done',!!b[i]));
+  }
 
-/* ===== SUBMISSION HANDLER ===== */
-submit.onclick = () => {
-  /* Dynamic per‑activity shares */
-  const auraUnit = MAX / gInputs.length;      // gain / loss for Aura
-  const badUnit  = MAX / bInputs.length;      // contribution to Bad %
+  /* --- render --- */
+  function render(){
+    const {xp,l}=loadXP();
+    xpVal.textContent=xp; setBar(xpFill,xp);
+    const aura=+localStorage.aura, bad=+localStorage.bad;
+    auraVal.textContent=aura.toFixed(2)+'%';
+    badVal.textContent =bad .toFixed(2)+'%';
+    setBar(auraFill,aura); setBar(badFill,bad);
+    lvlN.textContent=`Lv ${l}`; lvlT.textContent=title(l);
+    doneTxt.textContent=`Good Habits ${JSON.parse(localStorage.doneG||'[]').filter(Boolean).length} / ${gInputs.length}`;
+    remain.innerHTML='';
+    gInputs.forEach((c,i)=>{
+      if(!JSON.parse(localStorage.doneG||'[]')[i]){
+        const li=document.createElement('li');
+        li.textContent=c.nextSibling.textContent;
+        remain.append(li);
+      }
+    });
+  }
 
-  const dg = JSON.parse(localStorage.doneG||'[]');
-  const db = JSON.parse(localStorage.doneB||'[]');
+  /* --- navigation --- */
+  function showHome(){homeBtn.classList.add('active');actBtn.classList.remove('active');home.classList.add('active');acts.classList.remove('active');navLinks.classList.remove('show')}
+  function showActs(){actBtn.classList.add('active');homeBtn.classList.remove('active');acts.classList.add('active');home.classList.remove('active');navLinks.classList.remove('show')}
+  homeBtn.onclick=showHome; actBtn.onclick=showActs; logo.onclick=showHome;
+  burger.onclick=()=>navLinks.classList.toggle('show');
 
-  let dxp = 0, dAura = 0, dBad = 0;
+  /* --- submit logic --- */
+  submit.onclick=()=>{
+    const auUnit=100/gInputs.length, bdUnit=100/bInputs.length;
+    const dg=JSON.parse(localStorage.doneG||'[]'), db=JSON.parse(localStorage.doneB||'[]');
+    let dxp=0, da=0, dbp=0;
 
-  /* Good activities */
-  gInputs.forEach((c,i)=>{
-    if(c.checked){
-      dxp   += XP_GOOD;
-      dAura += auraUnit;
-      dg[i]  = true;
-      c.checked = false;
-    }
-  });
+    gInputs.forEach((cb,i)=>{
+      if(cb.checked){dxp+=XP_GOOD; da+=auUnit; dg[i]=true; cb.checked=false;}
+    });
+    bInputs.forEach((cb,i)=>{
+      if(cb.checked){dxp-=XP_BAD; da-=auUnit; dbp+=bdUnit; db[i]=true; cb.checked=false;}
+    });
 
-  /* Bad activities */
-  bInputs.forEach((c,i)=>{
-    if(c.checked){
-      dxp   -= XP_BAD;
-      dAura -= auraUnit;
-      dBad  += badUnit;
-      db[i]  = true;
-      c.checked = false;
-    }
-  });
+    localStorage.aura=(+localStorage.aura)+da;
+    localStorage.bad =(+localStorage.bad )+dbp;
 
-  /* Update Aura / Bad, clamp to 0‑100 */
-  let aura = +localStorage.aura + dAura;
-  let bad  = +localStorage.bad  + dBad;
-  aura = Math.max(0, Math.min(MAX, aura));
-  bad  = Math.max(0, Math.min(MAX, bad));
-  localStorage.aura = aura;
-  localStorage.bad  = bad;
+    let {xp,l}=loadXP(); xp+=dxp; let up=false,old=l;
+    while(xp>=needXP(l)){xp-=needXP(l);l++;up=true}
+    saveXP(xp,l);
 
-  /* Update XP / Level */
-  let {xp,lvl} = loadXP(); xp = Math.max(0, xp + dxp);
-  let leveled=false, oldLvl=lvl;
-  while(xp >= needXP(lvl)){xp -= needXP(lvl); lvl++; leveled=true}
-  saveXP({xp,lvl});
+    localStorage.doneG=JSON.stringify(dg);localStorage.doneB=JSON.stringify(db);applyDone();
 
-  updateDoneArrays(dg,db);
+    xpCh.textContent=`XP ${dxp>=0?'+':''}${dxp}`;
+    auCh.textContent=da ? `Aura ${da>=0?'+':''}${da.toFixed(2)}%` : '';
+    bdCh.textContent=dbp? `Bad +${dbp.toFixed(2)}%` : '';
+    lvUp.textContent   =up ? `LEVEL UP! Lv ${old} → ${l} (${title(l)})` : '';
+    [auCh,bdCh,lvUp].forEach(el=>el.style.display=el.textContent?'block':'none');
 
-  /* Popup lines */
-  xpCh.textContent   = `XP ${dxp>=0?'+':''}${dxp}`;
-  auCh.textContent   = dAura ? `Aura ${dAura>=0?'+':''}${dAura.toFixed(2)}%` : '';
-  bdCh.textContent   = dBad  ? `Bad +${dBad.toFixed(2)}%` : '';
-  lvUp.textContent   = leveled ? `LEVEL UP! Lv ${oldLvl} → ${lvl} (${title(lvl)})` : '';
-  [auCh,bdCh,lvUp].forEach(el=>el.style.display=el.textContent?'block':'none');
-  popup.classList.remove('hidden');
+    popup.classList.remove('hidden');
+    render();
+  };
 
-  renderHome();
-};
+  /* --- popup controls --- */
+  function hidePopup(){popup.classList.add('hidden');}
+  closePop.onclick=hidePopup;
+  popup.addEventListener('click',e=>{if(e.target===popup)hidePopup()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!popup.classList.contains('hidden'))hidePopup()});
 
-/* ===== RESET BUTTON ===== */
-reset.onclick = ()=>{ if(confirm('Reset ALL progress?')) hardReset() };
+  /* --- reset --- */
+  reset.onclick=()=>{if(confirm('Reset ALL progress?')){localStorage.clear();initDay();applyDone();render();}}
 
-/* ===== INIT ===== */
-initDay();
-applyDoneMarks();
-renderHome();
+  /* --- boot --- */
+  initDay(); applyDone(); render();
+});
