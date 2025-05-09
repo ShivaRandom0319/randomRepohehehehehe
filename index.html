@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temptation Slayer — Self‑Discipline RPG</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="nav glass">
+    <h1 id="logo" class="logo">Temptation Slayer</h1>
+
+    <ul id="navLinks" class="links">
+      <li><button id="homeTab"       class="tab active">Home</button></li>
+      <li><button id="activitiesTab" class="tab">Activities</button></li>
+    </ul>
+
+    <button id="burger" class="burger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- HOME PAGE -->
+  <main id="homePage" class="page active">
+    <section class="stats glass">
+      <div class="level-block">
+        <span id="levelTitle" class="level-title"></span>
+        <span id="levelDisplay" class="level-number"></span>
+      </div>
+
+      <div class="xp-wrapper">
+        <div id="xpBar" class="xp-bar">
+          <span id="xpText" class="xp-text">0 / 100 XP</span>
+        </div>
+      </div>
+
+      <div class="rings">
+        <div id="auraRing" class="ring aura"><span id="auraText">Aura 0%</span></div>
+        <div id="badRing"  class="ring bad"><span id="badText">Bad 0%</span></div>
+      </div>
+
+      <p id="habitsDone" class="habits-done">Good Habits 0 / 0</p>
+      <ul id="remainingList" class="todo-list"></ul>
+
+      <button id="resetBtn" class="btn secondary">⟲ Reset Progress</button>
+    </section>
+  </main>
+
+  <!-- ACTIVITIES PAGE -->
+  <main id="activitiesPage" class="page">
+    <section class="activities glass">
+      <div class="panel good">
+        <h2>Good Activities</h2>
+        <ul id="goodList" class="activity-list">
+         <li><input type="checkbox" id="g0"><label for="g0">Studying</label></li>
+<li><input type="checkbox" id="g1"><label for="g1">Workout(M)</label></li>
+<li><input type="checkbox" id="g2"><label for="g2">Workout(E)</label></li>
+<li><input type="checkbox" id="g3"><label for="g3">prac</li>
+<li><input type="checkbox" id="g4"><label for="g4">oil apply</li>
+<li><input type="checkbox" id="g5"><label for="g5">bath twice</label></li>
+<li><input type="checkbox" id="g6"><label for="g6">Brush(E)</label></li>
+<li><input type="checkbox" id="g7"><label for="g7">medicines</label></li>
+<li><input type="checkbox" id="g8"><label for="g8">lotion</label></li>
+        </ul>
+      </div>
+
+      <div class="panel bad">
+        <h2>Bad Activities</h2>
+        <ul id="badList" class="activity-list">
+         <li><input type="checkbox" id="b0"><label for="b0">Traumas</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">Images(M)</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">Images(Sys)</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">P**N</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">easeUs</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">VPN/VidDown</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">XSCam</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">camRec</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">Coc</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">wcc2</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">AI(gf)</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">Images(AI)</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">Fap</label></li>
+<li><input type="checkbox" id="b0"><label for="b0">phone(random usage)</label></li>
+        </ul>
+      </div>
+    </section>
+
+    <button id="submitBtn" class="btn primary pulse">Submit Results</button>
+  </main>
+
+  <!-- POPUP -->
+  <div id="popup" class="popup hidden">
+    <div class="popup-content glass">
+      <h2>Daily Summary</h2>
+      <p id="xpChange"   class="change"></p>
+      <p id="auraChange" class="change"></p>
+      <p id="badChange"  class="change"></p>
+      <p id="levelUpText" class="change level-up"></p>
+      <button id="closePopup" class="btn secondary">Close</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
