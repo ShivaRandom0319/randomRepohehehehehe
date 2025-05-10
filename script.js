@@ -11,8 +11,16 @@ function rankValue(rank) {
   return ['E', 'D', 'C', 'B', 'A', 'S'].indexOf(rank);
 }
 
-const todayKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+// Keys for today
+const todayKey = new Date().toISOString().split('T')[0]; // e.g., "2025-05-10"
 const auraKey = `aura-${todayKey}`;
+const temptedKey = `tempted-${todayKey}`;
+
+// Keys for yesterday (discipline bonus)
+const yesterday = new Date(Date.now() - 86400000); // 1 day ago
+const yesterdayKey = yesterday.toISOString().split('T')[0];
+const temptedYesterday = `tempted-${yesterdayKey}`;
+const rewardedYesterday = `rewarded-${yesterdayKey}`;
 
 function updateStats() {
   const xp = parseInt(localStorage.getItem('shivaXP') || '0');
@@ -21,7 +29,6 @@ function updateStats() {
   const currentRank = getRank(level);
   let highestRank = localStorage.getItem('highestRank') || 'E';
 
-  // Update highest rank permanently
   if (rankValue(currentRank) > rankValue(highestRank)) {
     highestRank = currentRank;
     localStorage.setItem('highestRank', highestRank);
@@ -48,11 +55,7 @@ function updateAuraBar(value) {
   bar.style.width = `${Math.min(Math.abs(value), 100)}%`;
   text.textContent = `${value}%`;
 
-  if (value >= 0) {
-    bar.style.background = '#30ffa8'; // Green
-  } else {
-    bar.style.background = '#ff5e5e'; // Red
-  }
+  bar.style.background = value >= 0 ? '#30ffa8' : '#ff5e5e';
 }
 
 function openDialog(id) {
@@ -67,6 +70,9 @@ let demonSoldiers = 0;
 let selectedSoldiers = 0;
 
 function prepareBattle() {
+  // Mark that battle was attempted
+  localStorage.setItem(temptedKey, 'yes');
+
   const xp = parseInt(localStorage.getItem('shivaXP') || '0');
   const level = Math.floor(xp / 100);
   const soldiers = parseInt(localStorage.getItem('shivaSoldiers') || '0');
@@ -105,12 +111,10 @@ function handleBattleResult(result) {
   } else {
     const lost = selectedSoldiers;
     const remainingSoldiers = Math.max(0, soldiers - lost);
-
     localStorage.setItem('shivaSoldiers', remainingSoldiers);
 
-    // ↓ Aura logic on defeat
     let aura = parseInt(localStorage.getItem(auraKey) || '100');
-    const auraLoss = Math.max(5, lost * 2); // lose more if more soldiers are lost
+    const auraLoss = Math.max(5, lost * 2);
     aura -= auraLoss;
     localStorage.setItem(auraKey, aura);
     updateAuraBar(aura);
@@ -163,8 +167,25 @@ function resetGame() {
   localStorage.setItem('shivaSoldiers', '0');
   localStorage.setItem('highestRank', 'E');
   localStorage.setItem(auraKey, '100');
+  localStorage.removeItem(temptedKey);
   updateStats();
   alert('Progress has been reset.');
+}
+
+function applyDisciplineBonusIfEligible() {
+  const wasTempted = localStorage.getItem(temptedYesterday);
+  const alreadyRewarded = localStorage.getItem(rewardedYesterday);
+
+  if (!wasTempted && !alreadyRewarded) {
+    let xp = parseInt(localStorage.getItem('shivaXP') || '0');
+    const level = Math.floor(xp / 100);
+    const bonus = 50 + level * 10;
+
+    xp += bonus;
+    localStorage.setItem('shivaXP', xp);
+    localStorage.setItem(rewardedYesterday, 'yes');
+    alert(`Discipline Reward: +${bonus} XP for no lust yesterday.`);
+  }
 }
 
 document.getElementById('temptedBtn').onclick = prepareBattle;
@@ -175,9 +196,11 @@ document.getElementById('ariseBtn').onclick = handleArise;
 document.getElementById('resetBtn').onclick = resetGame;
 
 window.onload = () => {
-  if (!localStorage.getItem('shivaSoldiers')) localStorage.setItem('shivaSoldiers', '0');
   if (!localStorage.getItem('shivaXP')) localStorage.setItem('shivaXP', '0');
+  if (!localStorage.getItem('shivaSoldiers')) localStorage.setItem('shivaSoldiers', '0');
   if (!localStorage.getItem('highestRank')) localStorage.setItem('highestRank', 'E');
   if (!localStorage.getItem(auraKey)) localStorage.setItem(auraKey, '100');
+
+  applyDisciplineBonusIfEligible();
   updateStats();
 };
