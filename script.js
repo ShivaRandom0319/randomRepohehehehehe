@@ -1,139 +1,183 @@
-/* ===== CONSTANTS ===== */
-const XP_GOOD = 20;      // XP gained per good activity
-const XP_BAD  = 15;      // XP lost per bad activity
+function getRank(level) {
+  if (level >= 50) return 'S';
+  if (level >= 35) return 'A';
+  if (level >= 20) return 'B';
+  if (level >= 10) return 'C';
+  if (level >= 5) return 'D';
+  return 'E';
+}
 
-/* ===== HELPERS ===== */
-const $  = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
-const today = () => new Date().toISOString().slice(0,10);
+function rankValue(rank) {
+  return ['E', 'D', 'C', 'B', 'A', 'S'].indexOf(rank);
+}
 
-/* NEW: tougher exponential XP curve  (150 × 1.5^(lvl‑1)) */
-const needXP = lvl => Math.round(150 * Math.pow(1.5, lvl - 1));
+const todayKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+const auraKey = `aura-${todayKey}`;
 
-/* ===== PERSISTENCE ===== */
-function loadXP(){return{xp:+localStorage.xp||0,l:+localStorage.lvl||1}}
-function saveXP(xp,l){localStorage.xp=xp;localStorage.lvl=l}
+function updateStats() {
+  const xp = parseInt(localStorage.getItem('shivaXP') || '0');
+  const soldiers = parseInt(localStorage.getItem('shivaSoldiers') || '0');
+  const level = Math.floor(xp / 100);
+  const currentRank = getRank(level);
+  let highestRank = localStorage.getItem('highestRank') || 'E';
 
-/* ===== DAILY RESET ===== */
-function initDay(){
-  if(localStorage.date !== today()){
-    localStorage.date  = today();
-    localStorage.aura  = 0;
-    localStorage.bad   = 0;
-    localStorage.doneG = '[]';
-    localStorage.doneB = '[]';
+  // Update highest rank permanently
+  if (rankValue(currentRank) > rankValue(highestRank)) {
+    highestRank = currentRank;
+    localStorage.setItem('highestRank', highestRank);
+  }
+
+  document.getElementById('xp').textContent = xp;
+  document.getElementById('soldiers').textContent = soldiers;
+  document.getElementById('level').textContent = level;
+  document.getElementById('rank').textContent = highestRank;
+
+  // Aura
+  let aura = parseInt(localStorage.getItem(auraKey));
+  if (isNaN(aura)) {
+    aura = 100;
+    localStorage.setItem(auraKey, aura);
+  }
+  updateAuraBar(aura);
+}
+
+function updateAuraBar(value) {
+  const bar = document.getElementById('auraBar');
+  const text = document.getElementById('auraPercent');
+
+  bar.style.width = `${Math.min(Math.abs(value), 100)}%`;
+  text.textContent = `${value}%`;
+
+  if (value >= 0) {
+    bar.style.background = '#30ffa8'; // Green
+  } else {
+    bar.style.background = '#ff5e5e'; // Red
   }
 }
 
-/* ===== DOM READY ===== */
-document.addEventListener('DOMContentLoaded',()=>{
+function openDialog(id) {
+  document.getElementById(id).style.display = 'flex';
+}
 
-  /* --- DOM refs --- */
-  const navLinks=$('#navLinks'), burger=$('#burger'), logo=$('#logo');
-  const homeBtn=$('#homeTab'), actBtn=$('#activitiesTab');
-  const home=$('#homePage'),  acts=$('#activitiesPage');
+function closeDialog(id) {
+  document.getElementById(id).style.display = 'none';
+}
 
-  const lvlT=$('#levelTitle'), lvlN=$('#levelDisplay');
-  const xpFill=$('#xpBar .fill'),   xpVal=$('#xpValue');
-  const auraFill=$('#auraBar .fill'),auraVal=$('#auraValue');
-  const badFill=$('#badBar .fill'), badVal=$('#badValue');
+let demonSoldiers = 0;
+let selectedSoldiers = 0;
 
-  const doneTxt=$('#habitsDone'), remain=$('#remainingList');
-  const gInputs=$$('#goodList input'), bInputs=$$('#badList input');
+function prepareBattle() {
+  const xp = parseInt(localStorage.getItem('shivaXP') || '0');
+  const level = Math.floor(xp / 100);
+  const soldiers = parseInt(localStorage.getItem('shivaSoldiers') || '0');
 
-  const submit=$('#submitBtn'), reset=$('#resetBtn');
-  const popup=$('#popup'), closePop=$('#closePopup');
-  const xpCh=$('#xpChange'), auCh=$('#auraChange'),
-        bdCh=$('#badChange'), lvUp=$('#levelUpText');
+  demonSoldiers = Math.floor(Math.random() * ((level * 3 + 10) - (level * 2 + 5) + 1)) + (level * 2 + 5);
+  selectedSoldiers = 0;
 
-  /* --- title helper --- */
-  const titles=new Map([[1,'Initiate'],[2,'Novice'],[3,'Apprentice'],[4,'Practitioner'],[5,'Warrior'],
-                        [6,'Hero'],[10,'Master'],[15,'Ascendant'],[30,'Celestial'],[50,'Eternal'],[100,'Supreme']]);
-  const title=l=>{let t='Adventurer';for(const[k,v]of titles)if(l>=k)t=v;return t;}
+  document.getElementById('shivaSoldiers').textContent = soldiers;
+  document.getElementById('demonSoldiers').textContent = demonSoldiers;
+  document.getElementById('soldierSlider').max = soldiers;
+  document.getElementById('soldierSlider').value = 0;
+  document.getElementById('selectedSoldiers').textContent = selectedSoldiers;
 
-  /* --- bar helper --- */
-  function setBar(fill,val){
-    const pct=Math.min(Math.abs(val),100)/2;
-    fill.style.width=pct+'%';
-    if(val>=0){fill.style.left='50%';fill.style.background='var(--good)';}
-    else      {fill.style.left=`${50-pct}%`;fill.style.background='var(--bad)';}
-  }
-
-  /* --- done marks --- */
-  function applyDone(){
-    const g=JSON.parse(localStorage.doneG||'[]');
-    const b=JSON.parse(localStorage.doneB||'[]');
-    gInputs.forEach((c,i)=>c.nextSibling.classList.toggle('done',!!g[i]));
-    bInputs.forEach((c,i)=>c.nextSibling.classList.toggle('done',!!b[i]));
-  }
-
-  /* --- render --- */
-  function render(){
-    const {xp,l}=loadXP();
-    xpVal.textContent=xp; setBar(xpFill,xp);
-    const aura=+localStorage.aura, bad=+localStorage.bad;
-    auraVal.textContent=aura.toFixed(2)+'%';
-    badVal.textContent =bad .toFixed(2)+'%';
-    setBar(auraFill,aura); setBar(badFill,bad);
-    lvlN.textContent=`Lv ${l}`; lvlT.textContent=title(l);
-    doneTxt.textContent=`Good Habits ${JSON.parse(localStorage.doneG||'[]').filter(Boolean).length} / ${gInputs.length}`;
-    remain.innerHTML='';
-    gInputs.forEach((c,i)=>{
-      if(!JSON.parse(localStorage.doneG||'[]')[i]){
-        const li=document.createElement('li');
-        li.textContent=c.nextSibling.textContent;
-        remain.append(li);
-      }
-    });
-  }
-
-  /* --- navigation --- */
-  function showHome(){homeBtn.classList.add('active');actBtn.classList.remove('active');home.classList.add('active');acts.classList.remove('active');navLinks.classList.remove('show')}
-  function showActs(){actBtn.classList.add('active');homeBtn.classList.remove('active');acts.classList.add('active');home.classList.remove('active');navLinks.classList.remove('show')}
-  homeBtn.onclick=showHome; actBtn.onclick=showActs; logo.onclick=showHome;
-  burger.onclick=()=>navLinks.classList.toggle('show');
-
-  /* --- submit logic --- */
-  submit.onclick=()=>{
-    const auUnit=100/gInputs.length, bdUnit=100/bInputs.length;
-    const dg=JSON.parse(localStorage.doneG||'[]'), db=JSON.parse(localStorage.doneB||'[]');
-    let dxp=0, da=0, dbp=0;
-
-    gInputs.forEach((cb,i)=>{
-      if(cb.checked){dxp+=XP_GOOD; da+=auUnit; dg[i]=true; cb.checked=false;}
-    });
-    bInputs.forEach((cb,i)=>{
-      if(cb.checked){dxp-=XP_BAD; da-=auUnit; dbp+=bdUnit; db[i]=true; cb.checked=false;}
-    });
-
-    localStorage.aura=(+localStorage.aura)+da;
-    localStorage.bad =(+localStorage.bad )+dbp;
-
-    let {xp,l}=loadXP(); xp+=dxp; let up=false,old=l;
-    while(xp>=needXP(l)){xp-=needXP(l);l++;up=true}
-    saveXP(xp,l);
-
-    localStorage.doneG=JSON.stringify(dg);localStorage.doneB=JSON.stringify(db);applyDone();
-
-    xpCh.textContent=`XP ${dxp>=0?'+':''}${dxp}`;
-    auCh.textContent=da ? `Aura ${da>=0?'+':''}${da.toFixed(2)}%` : '';
-    bdCh.textContent=dbp? `Bad +${dbp.toFixed(2)}%` : '';
-    lvUp.textContent   =up ? `LEVEL UP! Lv ${old} → ${l} (${title(l)})` : '';
-    [auCh,bdCh,lvUp].forEach(el=>el.style.display=el.textContent?'block':'none');
-
-    popup.classList.remove('hidden');
-    render();
+  document.getElementById('soldierSlider').oninput = function () {
+    selectedSoldiers = parseInt(this.value);
+    document.getElementById('selectedSoldiers').textContent = selectedSoldiers;
   };
 
-  /* --- popup controls --- */
-  function hidePopup(){popup.classList.add('hidden');}
-  closePop.onclick=hidePopup;
-  popup.addEventListener('click',e=>{if(e.target===popup)hidePopup()});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!popup.classList.contains('hidden'))hidePopup()});
+  openDialog('battleDialog');
+}
 
-  /* --- reset --- */
-  reset.onclick=()=>{if(confirm('Reset ALL progress?')){localStorage.clear();initDay();applyDone();render();}}
+function startBattle() {
+  closeDialog('battleDialog');
+  openDialog('battleArena');
+}
 
-  /* --- boot --- */
-  initDay(); applyDone(); render();
-});
+function handleBattleResult(result) {
+  closeDialog('battleArena');
+
+  let xp = parseInt(localStorage.getItem('shivaXP') || '0');
+  let soldiers = parseInt(localStorage.getItem('shivaSoldiers') || '0');
+
+  if (result === 'win') {
+    document.getElementById('capturedSoldiers').textContent = demonSoldiers;
+    openDialog('victoryDialog');
+  } else {
+    const lost = selectedSoldiers;
+    const remainingSoldiers = Math.max(0, soldiers - lost);
+
+    localStorage.setItem('shivaSoldiers', remainingSoldiers);
+
+    // ↓ Aura logic on defeat
+    let aura = parseInt(localStorage.getItem(auraKey) || '100');
+    const auraLoss = Math.max(5, lost * 2); // lose more if more soldiers are lost
+    aura -= auraLoss;
+    localStorage.setItem(auraKey, aura);
+    updateAuraBar(aura);
+
+    updateStats();
+    showSummary('Defeat', lost, 0, 'Soldiers Lost');
+  }
+}
+
+function handleArise() {
+  closeDialog('victoryDialog');
+
+  let xp = parseInt(localStorage.getItem('shivaXP') || '0');
+  let soldiers = parseInt(localStorage.getItem('shivaSoldiers') || '0');
+  const prevRank = localStorage.getItem('highestRank') || 'E';
+
+  const gainedXP = demonSoldiers * 10;
+  const gainedSoldiers = demonSoldiers;
+
+  xp += gainedXP;
+  soldiers += gainedSoldiers;
+
+  localStorage.setItem('shivaXP', xp);
+  localStorage.setItem('shivaSoldiers', soldiers);
+
+  updateStats();
+  showSummary('Victory', gainedSoldiers, gainedXP, 'Soldiers Gained');
+
+  const newLevel = Math.floor(xp / 100);
+  const newRank = getRank(newLevel);
+  if (rankValue(newRank) > rankValue(prevRank)) {
+    localStorage.setItem('highestRank', newRank);
+    document.getElementById('oldRank').textContent = prevRank;
+    document.getElementById('newRank').textContent = newRank;
+    openDialog('rankUpDialog');
+  }
+}
+
+function showSummary(resultText, soldierChange, xpChange, label) {
+  document.getElementById('summaryResult').textContent = resultText;
+  document.getElementById('summarySoldierLabel').textContent = label;
+  document.getElementById('summarySoldiers').textContent = soldierChange;
+  const xpDisplay = xpChange > 0 ? `XP: +${xpChange}` : `XP: ${xpChange}`;
+  document.getElementById('summaryXPLine').textContent = xpDisplay;
+  openDialog('battleSummary');
+}
+
+function resetGame() {
+  localStorage.setItem('shivaXP', '0');
+  localStorage.setItem('shivaSoldiers', '0');
+  localStorage.setItem('highestRank', 'E');
+  localStorage.setItem(auraKey, '100');
+  updateStats();
+  alert('Progress has been reset.');
+}
+
+document.getElementById('temptedBtn').onclick = prepareBattle;
+document.getElementById('startBattleBtn').onclick = startBattle;
+document.getElementById('winBtn').onclick = () => handleBattleResult('win');
+document.getElementById('loseBtn').onclick = () => handleBattleResult('lose');
+document.getElementById('ariseBtn').onclick = handleArise;
+document.getElementById('resetBtn').onclick = resetGame;
+
+window.onload = () => {
+  if (!localStorage.getItem('shivaSoldiers')) localStorage.setItem('shivaSoldiers', '0');
+  if (!localStorage.getItem('shivaXP')) localStorage.setItem('shivaXP', '0');
+  if (!localStorage.getItem('highestRank')) localStorage.setItem('highestRank', 'E');
+  if (!localStorage.getItem(auraKey)) localStorage.setItem(auraKey, '100');
+  updateStats();
+};

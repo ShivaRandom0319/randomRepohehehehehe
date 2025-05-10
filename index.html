@@ -2,126 +2,76 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Temptation Slayer — Self‑Discipline RPG</title>
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lust Slayer: Demon Hunter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
-
-<body style="--nav-h:64px">
-  <!-- ============ NAVBAR ============ -->
-  <nav id="mainNav" class="nav glass">
-    <h1 id="logo" class="logo">Temptation Slayer</h1>
-
-    <ul id="navLinks" class="links">
-      <li><button id="homeTab" class="tab active">Home</button></li>
-      <li><button id="activitiesTab" class="tab">Activities</button></li>
-    </ul>
-
-    <button id="burger" class="burger" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
-  </nav>
-
-  <!-- ============ HOME ============ -->
-  <main id="homePage" class="page active">
-    <section class="stats glass">
-      <div class="level-block">
-        <span id="levelTitle" class="level-title"></span>
-        <span id="levelDisplay" class="level-number"></span>
+<body>
+  <div class="container">
+    <h1>Inner War</h1>
+    <div class="stats">
+      <p>Name: <strong>Shiva</strong></p>
+      <p>Soldiers: <span id="soldiers">0</span></p>
+      <p>XP: <span id="xp">0</span></p>
+      <p>Level: <span id="level">0</span></p>
+      <p>Rank: <span id="rank">E</span></p>
+      <p>Aura: <span id="auraPercent">100%</span></p>
+      <div class="aura-bar-container">
+        <div class="aura-bar" id="auraBar"></div>
       </div>
+    </div>
+    <button id="temptedBtn">I am Tempted</button>
+    <button id="resetBtn" class="reset">Reset Progress</button>
+  </div>
 
-      <!-- XP BAR -->
-      <div class="stat-line">
-        <span class="stat-label">XP</span>
-        <div class="dual-bar" id="xpBar"><div class="fill"></div></div>
-        <span id="xpValue" class="stat-value">0</span>
+  <!-- Dialogs: Battle, Arena, Victory, Summary, RankUp -->
+  <div class="modal" id="battleDialog">
+    <div class="modal-content">
+      <h2>Prepare for Battle</h2>
+      <p>Shiva (Soldiers: <span id="shivaSoldiers"></span>)</p>
+      <p>Lust Demon (Soldiers: <span id="demonSoldiers"></span>)</p>
+      <input type="range" id="soldierSlider" min="0" value="0">
+      <p>Soldiers to send: <span id="selectedSoldiers">0</span></p>
+      <button id="startBattleBtn">Start Battle</button>
+      <button onclick="closeDialog('battleDialog')">Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal" id="battleArena">
+    <div class="modal-content">
+      <h2>Battle in Progress...</h2>
+      <div class="battle-bar"></div>
+      <div class="battle-actions">
+        <button id="winBtn">Win</button>
+        <button id="loseBtn">Lose</button>
       </div>
+    </div>
+  </div>
 
-      <!-- AURA BAR -->
-      <div class="stat-line">
-        <span class="stat-label">Aura %</span>
-        <div class="dual-bar" id="auraBar"><div class="fill"></div></div>
-        <span id="auraValue" class="stat-value">0%</span>
-      </div>
+  <div class="modal" id="victoryDialog">
+    <div class="modal-content">
+      <h2>Victory!</h2>
+      <p>You have captured <span id="capturedSoldiers"></span> soldiers.</p>
+      <button id="ariseBtn">Arise</button>
+    </div>
+  </div>
 
-      <!-- BAD BAR -->
-      <div class="stat-line">
-        <span class="stat-label">Bad %</span>
-        <div class="dual-bar" id="badBar"><div class="fill"></div></div>
-        <span id="badValue" class="stat-value">0%</span>
-      </div>
+  <div class="modal" id="battleSummary">
+    <div class="modal-content">
+      <h2>Battle Summary</h2>
+      <p id="summaryResult"></p>
+      <p><span id="summarySoldierLabel"></span>: <span id="summarySoldiers"></span></p>
+      <p id="summaryXPLine"></p>
+      <button onclick="closeDialog('battleSummary')">Close</button>
+    </div>
+  </div>
 
-      <div class="divider"></div>
-
-      <p id="habitsDone" class="habits-done">Good Habits 0 / 0</p>
-      <ul id="remainingList" class="todo-list"></ul>
-
-      <button id="resetBtn" class="btn secondary">⟲ Reset Progress</button>
-    </section>
-  </main>
-
-  <!-- ============ ACTIVITIES ============ -->
-  <main id="activitiesPage" class="page">
-    <section class="activities glass">
-      <!-- GOOD -->
-      <div class="panel good">
-        <h2>Good Activities</h2>
-        <ul id="goodList" class="activity-list">
-<li><input type="checkbox" id="g0"><label for="g0">Studying</label></li>
-<li><input type="checkbox" id="g1"><label for="g1">Workout(M)</label></li>
-<li><input type="checkbox" id="g2"><label for="g2">Workout(E)</label></li>
-<li><input type="checkbox" id="g3"><label for="g3">prac</li>
-<li><input type="checkbox" id="g4"><label for="g4">oil apply</li>
-<li><input type="checkbox" id="g5"><label for="g5">bath twice</label></li>
-<li><input type="checkbox" id="g6"><label for="g6">Brush(E)</label></li>
-<li><input type="checkbox" id="g7"><label for="g7">medicines</label></li>
-<li><input type="checkbox" id="g8"><label for="g8">SoakNutsAndEat</label></li>
-<li><input type="checkbox" id="g9"><label for="g9">lotion</label></li>
-        </ul>
-      </div>
-
-      <!-- BAD -->
-      <div class="panel bad">
-        <h2>Bad Activities</h2>
-        <ul id="badList" class="activity-list">
-          <li><input type="checkbox" id="b0"><label for="b0">Traumas</label></li>
-<li><input type="checkbox" id="b1"><label for="b1">Images(M)</label></li>
-<li><input type="checkbox" id="b2"><label for="b2">Images(Sys)</label></li>
-<li><input type="checkbox" id="b3"><label for="b3">P**N</label></li>
-<li><input type="checkbox" id="b4"><label for="b4">easeUs</label></li>
-<li><input type="checkbox" id="b5"><label for="b5">VPN(phn)</label></li>
-<li><input type="checkbox" id="b5"><label for="b5">VidDown(phn)</label></li>
-<li><input type="checkbox" id="b5"><label for="b5">TurboVPN(lap)</label></li>
-<li><input type="checkbox" id="b6"><label for="b6">XSCam</label></li>
-<li><input type="checkbox" id="b7"><label for="b7">camRec</label></li>
-<li><input type="checkbox" id="b8"><label for="b8">Coc</label></li>
-<li><input type="checkbox" id="b9"><label for="b9">wcc2</label></li>
-<li><input type="checkbox" id="b10"><label for="b10">AI(gf)</label></li>
-<li><input type="checkbox" id="b11"><label for="b11">Images(AI)</label></li>
-<li><input type="checkbox" id="b12"><label for="b12">Fap</label></li>
-<li><input type="checkbox" id="b13"><label for="b13">phone(random usage)</label></li>
-        </ul>
-      </div>
-    </section>
-
-    <button id="submitBtn" class="btn primary pulse">Submit Results</button>
-  </main>
-
-  <!-- ============ POPUP ============ -->
-  <div id="popup" class="popup hidden">
-    <div class="popup-content glass">
-      <h2>Daily Summary</h2>
-      <p id="xpChange"   class="change"></p>
-      <p id="auraChange" class="change"></p>
-      <p id="badChange"  class="change"></p>
-      <p id="levelUpText" class="change level-up"></p>
-      <button id="closePopup" class="btn secondary">Close</button>
+  <div class="modal" id="rankUpDialog">
+    <div class="modal-content">
+      <h2>Rank Up!</h2>
+      <p>You advanced from <span id="oldRank"></span> to <span id="newRank"></span></p>
+      <button onclick="closeDialog('rankUpDialog')">Awesome!</button>
     </div>
   </div>
 
